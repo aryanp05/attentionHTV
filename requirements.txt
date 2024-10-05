@@ -1,3 +1,5 @@
-# requirements.txt
-fastapi
+fastapi 
 uvicorn
+opencv-python 
+mediapipe 
+numpy
