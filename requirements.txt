@@ -1,5 +1,5 @@
-fastapi 
+fastapi
 uvicorn
-opencv-python 
-mediapipe 
-numpy
+gunicorn
+opencv-python
+mediapipe
