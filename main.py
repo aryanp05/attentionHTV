@@ -1,11 +1,12 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 import cv2
 import mediapipe as mp
 import numpy as np
 import math
 import time
-import numpy as np
+import base64
+from io import BytesIO
 
 app = FastAPI()
 
@@ -56,13 +57,18 @@ def update_state(pitch, yaw):
             current_state = "distracted"
             thinking_start_time = None
 
-# API endpoint for processing video frames
+# API endpoint for processing a base64-encoded string representing the video frame (JPG)
 @app.post("/process_video/")
-async def process_video(file: UploadFile = File(...)):
-    video_data = await file.read()
+async def process_video(image_data: dict):
+    base64_image = image_data.get('image', None)
+    if base64_image is None:
+        return JSONResponse({"error": "Image data missing"}, status_code=400)
 
+    # Decode the Base64 string back into binary data (bytes)
+    image_bytes = base64.b64decode(base64_image)
+    
     # Convert bytes data to OpenCV image
-    nparr = np.frombuffer(video_data, np.uint8)
+    nparr = np.frombuffer(image_bytes, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     
     # Convert the image to RGB for Mediapipe
@@ -99,4 +105,10 @@ async def process_video(file: UploadFile = File(...)):
 
                 update_state(pitch, yaw)
 
-    return JSONResponse({"state": current_state})
+    # Encode the processed image to JPG and convert to Base64
+    _, img_encoded = cv2.imencode('.jpg', image)
+    img_bytes = img_encoded.tobytes()
+    img_base64 = base64.b64encode(img_bytes).decode('utf-8')
+
+    # Return the Base64-encoded processed image and the state
+    return JSONResponse({"state": current_state, "processed_image": img_base64})
