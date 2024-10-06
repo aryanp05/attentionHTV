@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -9,6 +10,14 @@ import base64
 from io import BytesIO
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or specify domains
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods like POST, GET, OPTIONS, etc.
+    allow_headers=["*"],  # Allow all headers
+)
 
 # Initialize Mediapipe Face Mesh
 mp_face_mesh = mp.solutions.face_mesh
